@@ -32,10 +32,22 @@ public class UrlManager {
             page = sb.toString();
             
         } catch (Exception e) {
-            System.out.println("Playlist not found!");
+            System.out.println("Url not found!");
         }
         
         
         return page;
     }
+
+    static void downloadMusics() {
+        for (int i = 0; i < MusicRepository.musicRepo.size(); i++) {
+            MusicRepository.showStatus();
+            if(!MusicRepository.musicRepo.get(i).downloaded){
+                //FileManager.downloadFile(MusicRepository.musicRepo.get(i).out());
+                MusicRepository.musicRepo.get(i).downloaded=true;
+            }
+        }
+    }
+    
+    
 }
