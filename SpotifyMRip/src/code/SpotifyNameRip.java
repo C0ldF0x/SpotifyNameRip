@@ -4,6 +4,7 @@
  */
 package code;
 
+import java.io.File;
 import javax.swing.JOptionPane;
 
 /**
@@ -46,7 +47,7 @@ public class SpotifyNameRip {
         wd2.dispose();
 
         
-        boolean allFound=true;
+       /* boolean allFound=true;
         for(Music m:MusicRepository.musicRepo)
            if("".equals(m.getLink())){
                 System.out.println(m.getName() + " - " + m.getArtist() + ": Download link not found. Try again later." );
@@ -59,21 +60,26 @@ public class SpotifyNameRip {
             else
                 System.exit(0);
         }
-        
+        */
+        new UI();
         
     }
 
     
     public static void next(){
         Music m = MusicRepository.musicRepo.get(index);
-        if(!"".equals(m.getLink()) && !m.getLink().contains(" ")){
+        if(!"".equals(m.getLink()) && !m.getLink().contains(" ") && !(new File((m.getName() + " - " + m.getArtist()+".mp3"))).exists()){
                 System.out.println("Download windows open for: "+m.getName());
                     DownloadMusicUI dm = new DownloadMusicUI(m.getLink(), m.getName() + " - " + m.getArtist());
                     dm.setVisible(true);
-                    index++;
+                    if(index<MusicRepository.musicRepo.size())
+                        index++;
             }else{
                 System.out.println("Bad link generation for " + m.getName() + " - " + m.getArtist());
-                index++;next();
+                if(index<MusicRepository.musicRepo.size()){
+                    index++;
+                    next();
+                }
             }
     }
 }

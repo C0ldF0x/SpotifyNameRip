@@ -1,5 +1,6 @@
 package code;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -11,11 +12,14 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.ConnectException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Time;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -23,12 +27,15 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 /**
  *
  * @author Lucas Bellin
  */
-public class DownloadMusicUI extends JDialog
+public class MusicPanel extends JPanel
 {
     // classe que extende um Thread para executar o download
     // é necessário para que a Progress seja atualizado enquanto o download estiver sendo feito
@@ -44,7 +51,9 @@ public class DownloadMusicUI extends JDialog
             catch ( Exception e )
             {
                 System.out.println( "ERRO: " + e.toString() );
+                UI.next();
             }
+            
         }
     }
 
@@ -64,7 +73,7 @@ public class DownloadMusicUI extends JDialog
      * Download
      *
      */
-    public DownloadMusicUI(String link, String name)
+    public MusicPanel(String link, String name)
     {
         initComponents(link,name);
         
@@ -90,7 +99,9 @@ public class DownloadMusicUI extends JDialog
 
         catch ( Exception e )
         {
-            e.printStackTrace();
+            setBackground(new Color(238,44,44));
+            UI.next();
+            //e.printStackTrace();
         }
     }
 
@@ -103,7 +114,8 @@ public class DownloadMusicUI extends JDialog
      */
     private void downloadFile( String source, File target ) throws Exception
     {
-        jlMessage.setText( "Connecting ..." );
+        try{
+        //jlMessage.setText( "Connecting ..." );
 
         URLConnection conn = new URL( source ).openConnection();
 
@@ -120,7 +132,7 @@ public class DownloadMusicUI extends JDialog
 
         byte[] buffer = new byte[4096]; // 4kB
 
-        jlMessage.setText( "Downloading ..." );
+        //jlMessage.setText( "Downloading ..." );
 
         DateFormat tf = DateFormat.getTimeInstance();
 
@@ -146,87 +158,61 @@ public class DownloadMusicUI extends JDialog
 
             progress.setValue( bytesRead );
 
-            long timeElapsed = System.currentTimeMillis() - timeStarted;
-
-            double downloadRate = ( bytesRead / 1000.0 ) / ( timeElapsed / 1000.0 );
-
-            long timeRemaining =  (long) ( 1000 * ( ( contentLength - bytesRead ) / ( downloadRate * 1000 ) ) );
-
-            long timeArrival = timeStarted + timeElapsed + timeRemaining;
-
-            jlMessage.setText( " Downloading: " + fileName +
-                    ", Remaining time: " + timeRemaining/1000 + "s" +
-                    ", Speed: " + nf.format( downloadRate ) + " kB/s" );
         }
 
         in.close();
         out.close();
 
         System.out.println( target.exists() );
-
-        jlMessage.setText( "Download done!" );
-        dispose();
-        SpotifyNameRip.next();
+        setBackground(new Color(50,205,50));
+        UI.next();
+        }catch(ConnectException e){
+            setBackground(new Color(238,44,44));
+            UI.next();
+        }
     }
 
     private void initComponents(String link, String name)
     {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(MusicPanel.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(MusicPanel.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(MusicPanel.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedLookAndFeelException ex) {
+            Logger.getLogger(MusicPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
         musicLink=link;
         fileName=name+".mp3";
         setLayout( new GridBagLayout() );
-        setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-        setSize( 400, 150 );
-        setLocationRelativeTo( null );
-        jlMessage.setText("Download: "+name);
-        buttonsPane.setLayout( new FlowLayout() );
-        buttonsPane.add( btStart );
-        buttonsPane.add(btClose);
-        buttonsPane.add(btExit);
-        btStart.setEnabled(false);
+        jlMessage.setText(name.substring(0,name.indexOf("-")));
+        jlMessage2.setText(name.substring(name.indexOf("-")+1));
 
-        jlMessage.setFont( new Font( "SansSerif" , Font.PLAIN, 10 ) );
+        jlMessage.setFont( new Font( "SansSerif" , Font.BOLD, 14 ) );
+        jlMessage2.setFont( new Font( "SansSerif" , Font.PLAIN, 10 ) );
         add( jlMessage, new GridBagConstraints( 0, 0, 1, 1, 1.0, 0.0,
                 GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                 new Insets( 5, 5, 5, 5 ), 0, 0 ) );
-        add( progress, new GridBagConstraints( 0, 1, 1, 1, 1.0, 0.0,
+        add( jlMessage2, new GridBagConstraints( 0, 1, 1, 1, 1.0, 0.0,
                 GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                 new Insets( 5, 5, 5, 5 ), 0, 0 ) );
-        add( buttonsPane, new GridBagConstraints( 0, 2, 1, 1, 1.0, 0.0,
-                GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+        add( progress, new GridBagConstraints( 0, 2, 1, 1, 1.0, 0.0,  
+                GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,  
                 new Insets( 5, 5, 5, 5 ), 0, 0 ) );
         
-        new Runner().start();
         
-        btStart.addActionListener( new AbstractAction()
-        {
-            public void actionPerformed( ActionEvent e )
-            {
-                btStart.setEnabled(false);
-                new Runner().start();
-            }
-        });
-        btClose.addActionListener(new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        btExit.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-                System.exit(0);
-            }
-        });
+    }
+    
+    public void startNow(){
+        new MusicPanel.Runner().start();
     }
 
     private JLabel jlMessage = new JLabel( "Message:");
+    private JLabel jlMessage2 = new JLabel( "Message:");
     
     private JProgressBar progress = new JProgressBar();
-    private JPanel buttonsPane = new JPanel();
-    private JButton btStart = new JButton( "Start download" );
-    private JButton btClose = new JButton ("Close");
-    private JButton btExit = new JButton ("Exit");
 }
